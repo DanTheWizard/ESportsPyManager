@@ -1,16 +1,16 @@
-app_version = "1.1.1"
-CENTER_TEXT_WIDTH = 89
+app_version = "1.1.2"
+CENTER_TEXT_WIDTH = 100
 
 def show_logo():
     """
     Shows a cool text ascii logo for this app, the version, who created it (Me), and what it does
     """
-    print(r"    _____ ____________________     ____  __.___.____    .____     _____________________  ")
-    print(r"   /  _  \\______   \______   \   |    |/ _|   |    |   |    |    \_   _____/\______   \ ")
-    print(r"  /  /_\  \|     ___/|     ___/   |      < |   |    |   |    |     |    __)_  |       _/ ")
-    print(r" /    |    \    |    |    |       |    |  \|   |    |___|    |___  |        \ |    |   \ ")
-    print(r" \____|__  /____|    |____|       |____|__ \___|_______ \_______ \/_______  / |____|_  / ")
-    print(r"         \/                               \/           \/       \/        \/         \/  ")
+    print(r"    _____ ____________________     ____  __.___.____    .____     _____________________  ".center(CENTER_TEXT_WIDTH))
+    print(r"   /  _  \\______   \______   \   |    |/ _|   |    |   |    |    \_   _____/\______   \ ".center(CENTER_TEXT_WIDTH))
+    print(r"  /  /_\  \|     ___/|     ___/   |      < |   |    |   |    |     |    __)_  |       _/ ".center(CENTER_TEXT_WIDTH))
+    print(r" /    |    \    |    |    |       |    |  \|   |    |___|    |___  |        \ |    |   \ ".center(CENTER_TEXT_WIDTH))
+    print(r" \____|__  /____|    |____|       |____|__ \___|_______ \_______ \/_______  / |____|_  / ".center(CENTER_TEXT_WIDTH))
+    print(r"         \/                               \/           \/       \/        \/         \/  ".center(CENTER_TEXT_WIDTH))
     print()
     print("WebSocket App".center(CENTER_TEXT_WIDTH))
     print(f"Version {app_version}".center(CENTER_TEXT_WIDTH))

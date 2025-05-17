@@ -7,6 +7,7 @@ import actions                                                                  
 import streamTool                                                                             # Check if Environmental Variable exists
 from logo import *                                                                            # Show custom logo and Main width for text if to be centered
 from debugPrint import *                                                                      # Import the Debug Print Functions
+from datetime import datetime                                                                 # Used to get current time for server detection when a device was last online
 from process_num import get_process_count                                                     # Process Checker
 from icon_data import GOOD_ICON_BASE64, WARN_ICON_BASE64, ERROR_ICON_BASE64, create_icon      # Icons as Base64 Data
 from pyautogui import getActiveWindowTitle                                                    # Get the current focused app name
@@ -192,8 +193,11 @@ def publish_loop():
         # Current Hostname
         client.publish(f"PC/{MACHINE_ID}/hostname", HOSTNAME)
 
+        # Current Time (for detection of "Last Online @")
+        client.publish(f"PC/{MACHINE_ID}/time", str(datetime.now()), 0, True)
+
         # Print the data if debugging
-        if DEBUG_PUBLISH: print(f"\n----------------------\nData Sent: \n  CPU: {cpu_percent}% \n  Ram: {ram_percent}%\n  App: {window_title}\n  User: {USERNAME}\n\n----------------------\n")
+        if DEBUG_PUBLISH: print(f"\n----------------------\nData Sent: \n  CPU: {cpu_percent}% \n  Ram: {ram_percent}%\n  App: {window_title}\n  User: {USERNAME}\n  Time: {datetime.now()}\n----------------------\n")
 
         time.sleep(PUBLISH_TIMEOUT)
 
@@ -210,15 +214,16 @@ def on_connect(wsclient, userdata, flags, reason_code, properties):
     wsclient.subscribe(f"PC/{MACHINE_ID}/action")
 
     if reason_code=="Success":
-        def show_success_con_toast():
-            toast(
-                "Yippee",
-                "Connected to Server",
-                icon=GoodIconPath,
-                audio='ms-winsoundevent:Notification.SMS'
-            )
-        threading.Thread(target=show_success_con_toast).start()
-        # Threads automatically exit once the function is done
+        if WS_SHOW_CON_TOAST:
+            def show_success_con_toast():
+                toast(
+                    "Yippee",
+                    "Connected to Server",
+                    icon=GoodIconPath,
+                    audio='ms-winsoundevent:Notification.SMS'
+                )
+            threading.Thread(target=show_success_con_toast).start()
+            # Threads automatically exit once the function is done
         print("Connected to WebSocket Server".center(CENTER_TEXT_WIDTH))
         if SHOW_WS_URL_PORT_STARTUP: print(f"{WS_SERVER}:{WS_PORT}".center(CENTER_TEXT_WIDTH))
         print(f"\n\n")
@@ -281,9 +286,11 @@ def handle_action(action_str: str):
 
     actions_map = {
         "none": lambda _: debug_print("\nNo Action to Do\n"),
-        "test": lambda _: actions.show_test_notification(GoodIconPath),
+        "test": lambda _: actions.show_test_notification(),
         "shutdown": lambda arg_timeout: actions.shutdown_pc(arg_timeout or DEFAULT_SHUTDOWN_TIMEOUT),
+        "say": lambda arg_words: actions.say(arg_words),
         "MCEdu": lambda _: actions.run_MCEdu(),
+        "ID": lambda _: actions.toastMachineID(),
         # "lock": lambda _: exec(StreamLock),
         # "unlock": lambda _: exec(StreamUnlock),
     }
@@ -314,15 +321,18 @@ app_blocker = AppBlocker()
 # Connect to the MQTT WebSockets broker
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, transport="websockets")
 client.username_pw_set(username=WS_USERNAME, password=WS_PASSWORD)
+if WS_USE_TLS: client.tls_set(ca_certs=None, certfile=None, keyfile=None) # Use system CA certificates (no ca_certs needed) based on config
 client.on_message = on_message
 client.on_connect = on_connect
 
 try:
     client.connect(WS_SERVER, WS_PORT)
-except: 
+except Exception as e:
+    print("ERROR: Unable to connect to WebSocket Server".center(CENTER_TEXT_WIDTH))
+    print(f"Because: {e}".center(CENTER_TEXT_WIDTH))
     toast(
-        "Uh Oh", 
-        "Unable to connect to the Server for Data\nPlease check your internet connection", 
+        "Uh Oh",
+        f"Unable to connect to the Server for Data\nError: {e}",
         icon=ErrorIconPath,
         audio='ms-winsoundevent:Notification.Reminder',
         duration='short'
