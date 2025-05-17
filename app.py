@@ -253,7 +253,7 @@ def on_connect(wsclient, userdata, flags, reason_code, properties):
     threading.Thread(target=main).start()
     # Threads exits once the function is done
     print("Connected to WebSocket Server".center(CENTER_TEXT_WIDTH))
-    print(f"{WS_SERVER}:{WS_PORT}".center(CENTER_TEXT_WIDTH))
+    if SHOW_WS_URL_PORT_STARTUP: print(f"{WS_SERVER}:{WS_PORT}".center(CENTER_TEXT_WIDTH))
     print("")
 
 
