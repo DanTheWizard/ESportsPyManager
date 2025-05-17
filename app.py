@@ -1,15 +1,15 @@
-import paho.mqtt.client as mqtt
-import threading
-import time
-import psutil
-import pyautogui
-import actions                                                                                # Set of actions to do based on received WebSocket action string
-import pyuac                                                                                  # Test if the app is running as admin
+import paho.mqtt.client as mqtt                                                               # The WebSocket (and MQTT) library for connecting to a WS server
+import threading                                                                              # Used to run multiple functions at once
+import psutil                                                                                 # Used to kill processes (using subprocess taskkill led to antivirus triggers)
 import json                                                                                   # For JSON data parsing
+import time                                                                                   # Well... to set timeouts
+import actions                                                                                # Set of actions to do based on received WebSocket action string
 import streamTool                                                                             # Check if Environmental Variable exists
 from logo import *                                                                            # Show custom logo and Main width for text if to be centered
+from debugPrint import *                                                                      # Import the Debug Print Functions
 from process_num import get_process_count                                                     # Process Checker
 from icon_data import GOOD_ICON_BASE64, WARN_ICON_BASE64, ERROR_ICON_BASE64, create_icon      # Icons as Base64 Data
+from pyautogui import getActiveWindowTitle                                                    # Get the current focused app name
 from win11toast import toast                                                                  # Windows 11 Toast Notifications
 from sys import exit                                                                          # Exit the script
 from config import *                                                                          # Import all variables and imports from config (cleaner structure)
@@ -54,41 +54,50 @@ if get_process_count(self_exe) > 2 and self_exe != "python.exe": # When compiled
     exit()
 
 
-def debug_print(*args, **kwargs):
-    """
-    When DEBUG is set to true, it will allow printing Debugging Lines
-    """
-    if DEBUG:
-        print(*args, **kwargs)
-
-########################################################################################################
-
-#StreamUnlock = 'os.system(""" "C:\Program Files\Windows STEAM Tools\PsExec.exe" /accepteula -u %USERDOMAIN%\Admin -p D1IT@D0e -i schtasks /run /tn STREAM\StreamUnlock """)'
-#StreamLock = 'os.system(""" "C:\Program Files\Windows STEAM Tools\PsExec.exe" /accepteula -u %USERDOMAIN%\Admin -p D1IT@D0e -i schtasks /run /tn STREAM\StreamLock """)'
-
-# if pyuac.isUserAdmin():
-#     StreamUnlock = 'subprocess.run(["streamos", "unlock"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)'
-#     StreamLock = 'subprocess.run(["streamos", "lock"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)'
-#     toast(
-#         "Running as Admin", 
-#         "The app is currently running with admin privileges", 
-#         icon=WarnIconPath,
-#         audio='ms-winsoundevent:Notification.Reminder',
-#         duration='short',
-#         button='Ok'
-#     )
-# else:
-#     StreamUnlock = r'subprocess.run(["C:\\Program Files\\Windows STEAM Tools\\PsExec.exe", "/accepteula", "-u", "%USERDOMAIN%\\Admin", "-p", "D1IT@D0e", "-i", "schtasks", "/run", "/tn", "STREAM\\StreamUnlock"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)'
-#     StreamLock = r'subprocess.run(["C:\\Program Files\\Windows STEAM Tools\\PsExec.exe", "/accepteula", "-u", "%USERDOMAIN%\\Admin", "-p", "D1IT@D0e", "-i", "schtasks", "/run", "/tn", "STREAM\\StreamLock"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)'
-
-
-
-
 ########################################################################################################
 
 
 # ESports Kill App Toll Class and code.
 # Made with help from ChatGPT :)
+def kill_app(app_name):
+    """
+    Finds and kills a given application and its child processes based on predefined executable names.
+    """
+    app_map = {
+        "Epic": ["EpicGamesLauncher.exe", "EpicWebHelper.exe"],
+        "Steam": ["steam.exe"],
+        "Battle": ["battle.net.exe"],
+        "Riot": ["RiotClientUx.exe", "RiotClientServices.exe"]
+    }
+
+    def kill_process_and_children(process):
+        """
+        Internal helper to recursively kill a process and all of its child processes.
+        """
+        try:
+            # Children Tasks
+            children = process.children(recursive=True)
+            for child in children:
+                try:
+                    child.kill()
+                    debug_kill_adv_print(f"Killed child process: {child.name()} (PID: {child.pid})")
+                except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+                    debug_kill_adv_print(f"Error killing child process: {e}")
+            # Main Parent Process
+            process.kill()
+            debug_kill_adv_print(f"Killed process: {process.name()} (PID: {process.pid})")
+        except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+            debug_kill_adv_print(f"Error accessing/killing process tree: {e}")
+
+    # Search all running processes and compare their names
+    for process_name in app_map.get(app_name, []):
+        for proc in psutil.process_iter(attrs=['pid', 'name']):
+            try:
+                if proc.info['name'].lower() == process_name.lower():
+                    kill_process_and_children(proc)
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue  # Skip if a process disappeared or is restricted
+
 class AppBlocker:
     """
     A class to monitor and terminate specified gaming applications based on external control signals.
@@ -144,12 +153,6 @@ class AppBlocker:
                 if self.main_script_enabled:
                     self.check_and_kill_apps()
 
-    def stop(self):
-        """
-        Stops the background thread gracefully.
-        """
-        self.running = False
-
     def check_and_kill_apps(self):
         """
         Iterates through the app_status dictionary and attempts to kill any applications that are flagged True.
@@ -157,54 +160,13 @@ class AppBlocker:
         for app, should_kill in self.app_status.items():
             if should_kill:
                 if DEBUG_KILL: print(f"KS: Killing {app}")
-                self.kill_app(app)
+                kill_app(app)
 
-    def debug_kill_adv_print(*args, **kwargs):
+    def stop(self):
         """
-        When DEBUG_KILL_ADV is set to true, it will allow printing Advanced Kill Debugging Status
+        Stops the background thread gracefully.
         """
-        if DEBUG_KILL_ADV:
-            print(*args, **kwargs)
-
-    def kill_app(self, app_name):
-        """
-        Finds and kills a given application and its child processes based on predefined executable names.
-        """
-        app_map = {
-            "Epic": ["EpicGamesLauncher.exe", "EpicWebHelper.exe"],
-            "Steam": ["steam.exe"],
-            "Battle": ["battle.net.exe"],
-            "Riot": ["RiotClientUx.exe", "RiotClientServices.exe"]
-        }
-
-        def kill_process_and_children(proc):
-            """
-            Internal helper to recursively kill a process and all of its child processes.
-            """
-            try:
-                # Children Tasks
-                children = proc.children(recursive=True)
-                for child in children:
-                    try:
-                        child.kill()
-                        AppBlocker.debug_kill_adv_print(f"Killed child process: {child.name()} (PID: {child.pid})")
-                    except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
-                        AppBlocker.debug_kill_adv_print(f"Error killing child process: {e}")
-                # Main Parent Process
-                proc.kill()
-                AppBlocker.debug_kill_adv_print(f"Killed process: {proc.name()} (PID: {proc.pid})")
-            except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
-                AppBlocker.debug_kill_adv_print(f"Error accessing/killing process tree: {e}")
-
-        # Search all running processes and compare their names
-        for process_name in app_map.get(app_name, []):
-            for proc in psutil.process_iter(attrs=['pid', 'name']):
-                try:
-                    if proc.info['name'].lower() == process_name.lower():
-                        kill_process_and_children(proc)
-                except (psutil.NoSuchProcess, psutil.AccessDenied):
-                    continue  # Skip if a process disappeared or is restricted
-
+        self.running = False
 
 ########################################################################################################
 
@@ -221,7 +183,7 @@ def publish_loop():
         client.publish(f"PC/{MACHINE_ID}/ram", ram_percent)
 
         # Current Focused App
-        window_title = pyautogui.getActiveWindowTitle()
+        window_title = getActiveWindowTitle()
         client.publish(f"PC/{MACHINE_ID}/app", window_title)
 
         # Current User
@@ -231,7 +193,7 @@ def publish_loop():
         client.publish(f"PC/{MACHINE_ID}/hostname", HOSTNAME)
 
         # Print the data if debugging
-        if DEBUG_PUBLISH: print(f"Data Sent: \n  CPU: {cpu_percent}% \n  Ram: {ram_percent}%\n  App: {window_title}\n  User: {USERNAME}\n\n----------------------\n")
+        if DEBUG_PUBLISH: print(f"\n----------------------\nData Sent: \n  CPU: {cpu_percent}% \n  Ram: {ram_percent}%\n  App: {window_title}\n  User: {USERNAME}\n\n----------------------\n")
 
         time.sleep(PUBLISH_TIMEOUT)
 
@@ -247,18 +209,37 @@ def on_connect(wsclient, userdata, flags, reason_code, properties):
     wsclient.subscribe("ESports/status")
     wsclient.subscribe(f"PC/{MACHINE_ID}/action")
 
-    def main():
+    if reason_code=="Success":
+        def show_success_con_toast():
+            toast(
+                "Yippee",
+                "Connected to Server",
+                icon=GoodIconPath,
+                audio='ms-winsoundevent:Notification.SMS'
+            )
+        threading.Thread(target=show_success_con_toast).start()
+        # Threads automatically exit once the function is done
+        print("Connected to WebSocket Server".center(CENTER_TEXT_WIDTH))
+        if SHOW_WS_URL_PORT_STARTUP: print(f"{WS_SERVER}:{WS_PORT}".center(CENTER_TEXT_WIDTH))
+        print(f"\n\n")
+    else:
         toast(
-            "Yippee",
-            "Connected to Server",
-            icon=GoodIconPath,
-            audio='ms-winsoundevent:Notification.SMS'
+            "Uh Oh",
+            "Unable to connect to the Server for some reason",
+            icon=ErrorIconPath,
+            audio='ms-winsoundevent:Notification.Reminder',
+            duration='short'
         )
-    threading.Thread(target=main).start()
-    # Threads exits once the function is done
-    print("Connected to WebSocket Server".center(CENTER_TEXT_WIDTH))
-    if SHOW_WS_URL_PORT_STARTUP: print(f"{WS_SERVER}:{WS_PORT}".center(CENTER_TEXT_WIDTH))
-    print("")
+        print("ERROR: Unable to connect to WebSocket Server".center(CENTER_TEXT_WIDTH))
+        if SHOW_WS_URL_PORT_STARTUP: print(f"{WS_SERVER}:{WS_PORT}".center(CENTER_TEXT_WIDTH))
+        print(f"\n\n")
+        exit()
+
+    debug_ws_connect_print(f"WS Client: {wsclient}")
+    debug_ws_connect_print(f"Userdata: {userdata}")
+    debug_ws_connect_print(f"flags: {flags}")
+    debug_ws_connect_print(f"reason code: {reason_code}")
+    debug_ws_connect_print(f"properties: {properties}")
 
 
 ########################################################################################################
@@ -268,7 +249,7 @@ def on_connect(wsclient, userdata, flags, reason_code, properties):
 def on_message(wsclient, userdata, message):
     """
     Function that executes when a new message is received. \n
-    First to arguments are needed, otherwise there will be a positional arguments error
+    First two arguments are needed, otherwise there will be a positional arguments error
     """
     topic = message.topic
     payload = message.payload.decode()
@@ -278,6 +259,11 @@ def on_message(wsclient, userdata, message):
 
     elif topic == "ESports/status":
         handle_status_update(payload)
+
+    debug_ws_mes_print(f"WS Client: {wsclient}")
+    debug_ws_mes_print(f"Userdata: {userdata}")
+    debug_ws_mes_print(f"Topic: {message.topic}")
+    debug_ws_mes_print(f"Payload: {message.payload}")
 
 
 def handle_action(action_str: str):
@@ -310,9 +296,10 @@ def handle_action(action_str: str):
 
     
 def handle_status_update(payload: str):
-    debug_print("Status Received")
+    debug_status_print("Status Received")
     try:
         data = json.loads(payload)
+        debug_status_print(data)
         app_blocker.update_status(data)
     except json.JSONDecodeError as e:
         debug_print(f"Failed to decode JSON: {e}")

@@ -5,6 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
       <excludeFolder url="file://$MODULE_DIR$/output" />
+      <excludeFolder url="file://$MODULE_DIR$/Ignore" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.13 (PyAppKiller)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
