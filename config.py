@@ -3,6 +3,7 @@ from winFingerprint import get_short_fingerprint        # Gets the last 10 digit
 from dotenv import load_dotenv                          # User .env file to load confidential data without uploading them to GitHub
 from windows_pathlib import WindowsPathlib as WinPath   # Use windows %path% in python
 from override import get_override                       # Use variables in override.ini over the default (Useful for debugging)
+from envpath import dotenv_path                         # Dynamic exe .env path location (I need to find a better way to secure this to prevent values from .env to be easily readable)
 import socket
 import sys
 import os
@@ -14,7 +15,7 @@ Most can be overridden with override.ini for debugging
 """
 
 
-load_dotenv()                                                   # Load the variables from the .env file
+load_dotenv(dotenv_path)                                                   # Load the variables from the .env file
 
 
 IconPath                  = WinPath(r"%public%\\Icons\\")       # Root Dir for storing Icons
