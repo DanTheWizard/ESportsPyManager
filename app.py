@@ -2,85 +2,28 @@ import paho.mqtt.client as mqtt
 import threading
 import time
 import psutil
-import socket
 import pyautogui
-import subprocess
-import os
-import sys
-from dotenv import load_dotenv                                                                # User .env file to load confidential data without uploading them to GitHub
-#import pyuac                                                                                 # Test if the app is running as admin
+import actions                                                                                # Set of actions to do based on received WebSocket action string
+import pyuac                                                                                  # Test if the app is running as admin
 import json                                                                                   # For JSON data parsing
-import logo                                                                                   # Show custom logo
 import streamTool                                                                             # Check if Environmental Variable exists
-from user import get_logged_in_username                                                       # Gets the username of the currently logged-in user despite whether the script is run with elevated privileges.
-from winFingerprint import get_short_fingerprint                                              # Gets the last 10 digits of the Unique SHA-256 Fingerprint for the OS+Hardware
+from logo import *                                                                            # Show custom logo and Main width for text if to be centered
 from process_num import get_process_count                                                     # Process Checker
 from icon_data import GOOD_ICON_BASE64, WARN_ICON_BASE64, ERROR_ICON_BASE64, create_icon      # Icons as Base64 Data
-from windows_pathlib import WindowsPathlib as WinPath                                         # Use windows %path% in python
-from win11toast import toast, toast_async                                                     # Windows 11 Toast Notifications
+from win11toast import toast                                                                  # Windows 11 Toast Notifications
 from sys import exit                                                                          # Exit the script
-
-load_dotenv()                                                                                 # Load the variables from the .env file
-
-########################################################################################################
-
-logo.show_logo()
+from config import *                                                                          # Import all variables and imports from config (cleaner structure)
 
 ########################################################################################################
 
-
-# Vars
-HOSTNAME = socket.gethostname()                # PC hostname
-MACHINE_ID = get_short_fingerprint()           # PC 10 digit unique hash
-USERNAME = get_logged_in_username()            # Current logged-in user
-
-IconPath      = WinPath(r"%public%\\Icons\\")  # Root Dir for storing Icons
-GoodIconPath  = f"{IconPath}good.png"          # Good/Checkmark icon
-WarnIconPath  = f"{IconPath}warn.png"          # Warning/Exclamation icon
-ErrorIconPath = f"{IconPath}error.png"         # Error/X icon
-
-self_exe = os.path.basename(sys.executable)    # Grab the current exe name
-
-g_mainscript = False                           # By default not to run the kill script loop TODO: What?
-
-PUBLISH_TIMEOUT = 4                            # Timout in seconds before publishing the latest information
-SHUTDOWN_TIMEOUT = "60"                        # Shutdown Timeout in seconds when receiving the shutdown command
-
-DEBUG = True                                   # Debug Mode
-
-# Using .env to not leak confidential data :)
-WS_SERVER   = os.getenv("WS_SERVER")           # Websocket Server Location
-WS_PORT     = int(os.getenv("WS_PORT"))        # Websocket Port
-WS_USERNAME = os.getenv("WS_USERNAME")         # Websocket Username Authentication
-WS_PASSWORD = os.getenv("WS_PASSWORD")         # Websocket Password Authentication
+show_logo()
 
 ########################################################################################################
 
-
-# Check if streamos is installed by checking its path
-
-if streamTool.check():
-
-    # Get a temp warning icon
-    TempWarnIconPath = WinPath(r"%temp%\warn.png")
-    
-    create_icon(TempWarnIconPath, WARN_ICON_BASE64)
-    
-    toast(
-        "STREAM-OS not installed",
-        "This app will not work if STREAM-OS is not installed\nPlease install STREAM-OS properly before using this app",
-        icon=fr"{TempWarnIconPath}",
-        audio='ms-winsoundevent:Notification.Reminder',
-        duration='long',
-        button='Ok'
-    )
-    os.remove(TempWarnIconPath)
-
-    exit()
-
+# Check if STREAMOS tool is installed by checking its path
+streamTool.check()
 
 ########################################################################################################
-
 
 # Make the Icon DIR if it does not exist already
 os.makedirs(IconPath, exist_ok=True)
@@ -90,13 +33,12 @@ create_icon(GoodIconPath, GOOD_ICON_BASE64)
 create_icon(WarnIconPath, WARN_ICON_BASE64)
 create_icon(ErrorIconPath, ERROR_ICON_BASE64)
 
-
 ########################################################################################################
 
 
 # Check if the exe (not python) [the exe compiled with pyinstaller] is already running, and if so, exit 
 
-if get_process_count(self_exe) > 2 and self_exe != "python.exe": # When compiled as an exe with PyInstaller there are 2 instances of it https://stackoverflow.com/a/34197172
+if get_process_count(self_exe) > 2 and self_exe != "python.exe": # When compiled as an exe with PyInstaller, there are 2 instances of it https://stackoverflow.com/a/34197172
     # print(get_process_count(self_exe))
     toast(
         f"{self_exe} is already running", 
@@ -107,6 +49,13 @@ if get_process_count(self_exe) > 2 and self_exe != "python.exe": # When compiled
     )
     exit()
 
+
+def debug_print(*args, **kwargs):
+    """
+    When DEBUG is set to true, it will allow printing Debugging Lines
+    """
+    if DEBUG:
+        print(*args, **kwargs)
 
 ########################################################################################################
 
@@ -133,44 +82,90 @@ if get_process_count(self_exe) > 2 and self_exe != "python.exe": # When compiled
 
 ########################################################################################################
 
+
 # ESports Kill App Toll Class and code.
-# Made with help from BlackBox AI :)
+# Made with help from BlackBox AI + ChatGPT :)
 class AppBlocker:
+    """
+    A class to monitor and terminate specified gaming applications based on external control signals.
+    Designed for ESports or educational environments where gaming apps must be controlled remotely.
+
+    Features:
+    - Threaded background loop to continuously check for target apps.
+    - Configurable kill list (via MQTT or other input).
+    - Thread-safe status updates using a lock.
+    - Graceful control via `enable` flag.
+
+    To use:
+    - Create an instance: `app_blocker = AppBlocker()`
+    - Call `update_status(data_dict)` to update which apps to monitor and whether to enable killing.
+    """
+
     def __init__(self):
+        """
+        Initializes internal flags, default status values, and starts the background killing thread.
+        """
         self.app_status = {
-            "enable": False,
             "Epic": False,
             "Steam": False,
             "Battle": False,
             "Riot": False
         }
-        self.mainscript_enabled = False
-        self.lock = threading.Lock()
+
+        self.main_script_enabled = False             # By default, the kill loop is not run
+        self.running = True                         # Allows for future graceful shutdown of the loop
+        self.lock = threading.Lock()                # Prevents race conditions when updating status
+
+        # Launch the background app-killing loop in a daemon thread
         self.kill_thread = threading.Thread(target=self.kill_apps_loop, daemon=True)
         self.kill_thread.start()
 
     def update_status(self, data):
+        """
+        Updates internal status dictionary from an external source, such as an MQTT message.
+        """
         with self.lock:
-            self.mainscript_enabled   = data.get("enable", False)
-            self.app_status["Epic"]   = data.get("Epic",   False)
-            self.app_status["Steam"]  = data.get("Steam",  False)
-            self.app_status["Battle"] = data.get("Battle", False)
-            self.app_status["Riot"]   = data.get("Riot",   False)
+            self.main_script_enabled = data.get("enable", False)
+            for app in self.app_status:
+                self.app_status[app] = data.get(app, False)
 
     def kill_apps_loop(self):
-        while True:
-            time.sleep(4)  # Check every 4 seconds
+        """
+        Background thread function that runs continuously.
+        Depending on the KILL_LOOP_TIMEOUT seconds, it checks whether killing is enabled and, if so, attempts to kill listed apps.
+        """
+        while self.running:
+            time.sleep(KILL_LOOP_TIMEOUT)
             with self.lock:
-                if self.mainscript_enabled:
+                if self.main_script_enabled:
                     self.check_and_kill_apps()
 
+    def stop(self):
+        """
+        Stops the background thread gracefully.
+        """
+        self.running = False
+
     def check_and_kill_apps(self):
+        """
+        Iterates through the app_status dictionary and attempts to kill any applications that are flagged True.
+        """
         for app, should_kill in self.app_status.items():
             if should_kill:
-                print(f"KS: Killing {app}")
+                if DEBUG_KILL: print(f"KS: Killing {app}")
                 self.kill_app(app)
 
+    def debug_kill_adv_print(*args, **kwargs):
+        """
+        When DEBUG_KILL_ADV is set to true, it will allow printing Advanced Kill Debugging Status
+        """
+        if DEBUG_KILL_ADV:
+            print(*args, **kwargs)
+
     def kill_app(self, app_name):
+        """
+        Finds and kills a given application and its child processes based on predefined executable names.
+        """
         app_map = {
             "Epic": ["EpicGamesLauncher.exe", "EpicWebHelper.exe"],
             "Steam": ["steam.exe"],
@@ -179,56 +174,35 @@ class AppBlocker:
         }
 
         def kill_process_and_children(proc):
-            # Get the children of the current process
-            children = proc.children(recursive=True)  # Get all child processes
-            for child in children:
-                try:
-                    child.kill()  # Kill each child process
-                    print(f"Killed child process: {child.name()} (PID: {child.pid})")
-                except Exception as e:
-                    print(f"Error killing child process {child.name()}: {e}")
-
-            # Now kill the parent process
+            """
+            Internal helper to recursively kill a process and all of its child processes.
+            """
             try:
+                # Children Tasks
+                children = proc.children(recursive=True)
+                for child in children:
+                    try:
+                        child.kill()
+                        AppBlocker.debug_kill_adv_print(f"Killed child process: {child.name()} (PID: {child.pid})")
+                    except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+                        AppBlocker.debug_kill_adv_print(f"Error killing child process: {e}")
+                # Main Parent Process
                 proc.kill()
-                print(f"Killed process: {proc.name()} (PID: {proc.pid})")
-            except Exception as e:
-                print(f"Error killing process {proc.name()}: {e}")
+                AppBlocker.debug_kill_adv_print(f"Killed process: {proc.name()} (PID: {proc.pid})")
+            except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+                AppBlocker.debug_kill_adv_print(f"Error accessing/killing process tree: {e}")
 
-        for process in app_map.get(app_name, []):
+        # Search all running processes and compare their names
+        for process_name in app_map.get(app_name, []):
             for proc in psutil.process_iter(attrs=['pid', 'name']):
-                if proc.info['name'] == process:
-                    kill_process_and_children(proc)
-
+                try:
+                    if proc.info['name'].lower() == process_name.lower():
+                        kill_process_and_children(proc)
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue  # Skip if a process disappeared or is restricted
 
 
 ########################################################################################################
-
-
-def shutdown_pc():
-    #shutdown /s /t 60 /c "I'm tired, shutting down in 10 seconds"
-    subprocess.run(
-        ["shutdown", "/s", "/t", SHUTDOWN_TIMEOUT, "/c", f"I'm tired, shutting down in {SHUTDOWN_TIMEOUT} seconds"],
-        shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT
-    )
-
-def show_test_notification():
-    toast(
-        "Test",
-        "Test Succesfull",
-        icon=GoodIconPath,
-        audio='ms-winsoundevent:Notification.SMS',
-        button='Nice :)'
-    )
-
-# Run Minecraft Education Edition
-def run_MCEdu():
-    print("\nLaunching MCEdu\n")
-    # exec("os.system('start minecraftedu://')")
-    subprocess.run(
-        ["start", "minecraftedu://"],
-        shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT
-    )
 
 
 # Function to publish messages in a loop
@@ -253,17 +227,21 @@ def publish_loop():
         client.publish(f"PC/{MACHINE_ID}/hostname", HOSTNAME)
 
         # Print the data if debugging
-        if DEBUG: print(f"Data Sent: \n  CPU: {cpu_percent}% \n  Ram: {ram_percent}%\n  App: {window_title}\n  User: {USERNAME}\n\n----------------------\n")
+        if DEBUG_PUBLISH: print(f"Data Sent: \n  CPU: {cpu_percent}% \n  Ram: {ram_percent}%\n  App: {window_title}\n  User: {USERNAME}\n\n----------------------\n")
 
         time.sleep(PUBLISH_TIMEOUT)
+
 
 ########################################################################################################
 
 
-def on_connect(client, userdata, flags, reason_code, properties):
-    # Subscribe to a topic to listen for specific messages
-    client.subscribe("ESports/status")
-    client.subscribe(f"PC/{MACHINE_ID}/action")
+def on_connect(wsclient, userdata, flags, reason_code, properties):
+    """
+    Upon connecting to the WebSocket Server, subscribe to a topic to listen for specific messages. \n
+    Other unused variables are needed in the function; otherwise there will be a positional arguments error
+    """
+    wsclient.subscribe("ESports/status")
+    wsclient.subscribe(f"PC/{MACHINE_ID}/action")
 
     def main():
         toast(
@@ -274,45 +252,66 @@ def on_connect(client, userdata, flags, reason_code, properties):
         )
     threading.Thread(target=main).start()
     # Threads exits once the function is done
-    print("Connected")
+    print("Connected to WebSocket Server".center(CENTER_TEXT_WIDTH))
+    print(f"{WS_SERVER}:{WS_PORT}".center(CENTER_TEXT_WIDTH))
+    print("")
+
+
+########################################################################################################
 
 
 # The callback for when the client receives a message
-def on_message(client, userdata, message):
-    # Action data on what to do
-    # Using predefined variables
-    if message.topic == f"PC/{MACHINE_ID}/action":
-        print(f"\nAction: {message.payload.decode()}\n")
-        action = message.payload.decode()
+def on_message(wsclient, userdata, message):
+    """
+    Function that executes when a new message is received. \n
+    First to arguments are needed, otherwise there will be a positional arguments error
+    """
+    topic = message.topic
+    payload = message.payload.decode()
 
-        if action == "test":
-            show_test_notification()
-        if action == "none":
-            print("\nNo Action to Do\n")
-        if action == "shutdown":
-            shutdown_pc()
-        if action == "MCEdu":
-            run_MCEdu()
+    if topic == f"PC/{MACHINE_ID}/action":
+        handle_action(payload)
 
-        # if action == "lock":
-        #     print("\nLocking the system\n")
-        #     exec(StreamLock)
-        # if action == "unlock": 
-        #     print("\nUnlocking the system\n")
-        #     exec(StreamUnlock)
+    elif topic == "ESports/status":
+        handle_status_update(payload)
+
+
+def handle_action(action_str: str):
+    """
+    A more centralized and cleaner way of listing functions to execute based on the received action message
+    :param action_str: Pass the type of action to be executed form the WebSocket Server. Can be given an argument with a colon. EX: shutdown:30
+    """
+
+    if ":" in action_str:
+        action, arg = action_str.split(":", 1)
+    else:
+        action, arg = action_str, None
+
+    debug_print(f"\n----------\nFull Action: {action_str}\nAction: {action}\nArg: {arg}\n----------\n")
+
+    actions_map = {
+        "none": lambda _: debug_print("\nNo Action to Do\n"),
+        "test": lambda _: actions.show_test_notification(GoodIconPath),
+        "shutdown": lambda arg_timeout: actions.shutdown_pc(arg_timeout or DEFAULT_SHUTDOWN_TIMEOUT),
+        "MCEdu": lambda _: actions.run_MCEdu(),
+        # "lock": lambda _: exec(StreamLock),
+        # "unlock": lambda _: exec(StreamUnlock),
+    }
+
+    action_func = actions_map.get(action)
+    if action_func:
+        action_func(arg)
+    else:
+        debug_print(f"Unknown action: {action}")
 
     
-
-    if message.topic == "ESports/status":
-        print("Status Received")
-        status_json = message.payload.decode()
-        try:
-            data = json.loads(status_json)
-            app_blocker.update_status(data)
-        except json.JSONDecodeError:
-            print("Failed to decode JSON")
-    
-
+def handle_status_update(payload: str):
+    debug_print("Status Received")
+    try:
+        data = json.loads(payload)
+        app_blocker.update_status(data)
+    except json.JSONDecodeError as e:
+        debug_print(f"Failed to decode JSON: {e}")
 
 
 
@@ -321,7 +320,7 @@ def on_message(client, userdata, message):
 # Initialize the AppBlocker
 app_blocker = AppBlocker()
 
-# Connect to the MQTT broker
+# Connect to the MQTT WebSockets broker
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, transport="websockets")
 client.username_pw_set(username=WS_USERNAME, password=WS_PASSWORD)
 client.on_message = on_message
@@ -349,13 +348,4 @@ client.publish(f"PC/{MACHINE_ID}/action", "none")
 # Start the publishing loop in another thread
 publish_thread = threading.Thread(target=publish_loop)
 publish_thread.start()
-
-
-# # Start the Kill ESports thread
-# kill_esports_thread = threading.Thread(target=kill_esports_loop)
-# kill_esports_thread.start()
-
-
-
 publish_thread.join()
-# kill_esports_thread.join()

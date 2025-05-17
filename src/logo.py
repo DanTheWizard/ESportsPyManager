@@ -1,5 +1,5 @@
 app_version = "1.0.7"
-WIDTH = 89
+CENTER_TEXT_WIDTH = 89
 
 def show_logo():
     """
@@ -12,13 +12,13 @@ def show_logo():
     print(r" \____|__  /____|    |____|       |____|__ \___|_______ \_______ \/_______  / |____|_  / ")
     print(r"         \/                               \/           \/       \/        \/         \/  ")
     print()
-    print("WebSocket App".center(WIDTH))
-    print(f"Version {app_version}".center(WIDTH))
+    print("WebSocket App".center(CENTER_TEXT_WIDTH))
+    print(f"Version {app_version}".center(CENTER_TEXT_WIDTH))
     print()
-    print("Developed by: DanTheWizard".center(WIDTH))
+    print("Developed by: DanTheWizard".center(CENTER_TEXT_WIDTH))
     print()
-    print("This app is made to prevent some apps from being launched during school hours".center(WIDTH))
-    print("based on the current config that is stored on a server".center(WIDTH))
+    print("This app is made to prevent some apps from being launched during school hours".center(CENTER_TEXT_WIDTH))
+    print("based on the current config that is stored on a server".center(CENTER_TEXT_WIDTH))
     print()
 
 
