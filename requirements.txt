@@ -1,0 +1,7 @@
+paho-mqtt
+psutil
+pyautogui
+requests
+python-dotenv
+windows-pathlib
+win11toast
