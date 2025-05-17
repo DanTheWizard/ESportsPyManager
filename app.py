@@ -116,7 +116,7 @@ class AppBlocker:
             "Riot": False
         }
 
-        self.main_script_enabled = False             # By default, the kill loop is not run
+        self.main_script_enabled = False            # By default, the kill loop is not run
         self.running = True                         # Allows for future graceful shutdown of the loop
         self.lock = threading.Lock()                # Prevents race conditions when updating status
 
@@ -318,7 +318,7 @@ def handle_status_update(payload: str):
         debug_print(f"Failed to decode JSON: {e}")
 
 
-
+########################################################################################################
 
 
 # Initialize the AppBlocker
