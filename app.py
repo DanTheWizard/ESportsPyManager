@@ -40,9 +40,13 @@ create_icon(ErrorIconPath, ERROR_ICON_BASE64)
 
 if get_process_count(self_exe) > 2 and self_exe != "python.exe": # When compiled as an exe with PyInstaller, there are 2 instances of it https://stackoverflow.com/a/34197172
     # print(get_process_count(self_exe))
+    print("")
+    print(f"ERROR: {self_exe} is already running".center(CENTER_TEXT_WIDTH))
+    print("This new instance will exit".center(CENTER_TEXT_WIDTH))
+    print("")
     toast(
         f"{self_exe} is already running", 
-        "The new instance will exit", 
+        "This new instance will exit",
         icon=WarnIconPath,
         audio='ms-winsoundevent:Notification.Reminder',
         button='Ok'
@@ -84,7 +88,7 @@ def debug_print(*args, **kwargs):
 
 
 # ESports Kill App Toll Class and code.
-# Made with help from BlackBox AI + ChatGPT :)
+# Made with help from ChatGPT :)
 class AppBlocker:
     """
     A class to monitor and terminate specified gaming applications based on external control signals.
