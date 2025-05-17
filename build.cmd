@@ -2,7 +2,7 @@
 
 REM 0 - Build only the -s version
 REM 1 - Build only the -h version
-REM 3 - Build both -s and -h version
+REM 2 - Build both -s and -h version
 REM | - Show what command would run
 set hidden=0
 
