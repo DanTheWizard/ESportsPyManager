@@ -24,10 +24,10 @@ A Python-based client script that connects to a WebSocket server to send system 
   - And more per request of the ESports Lab Director
 <br><br>
 - 🧪 **Debug-Friendly Architecture**  
-  Toggle debug output per feature with individual flags (`DEBUG_KILL`, `DEBUG_PUBLISH`, etc.).
+  - Toggle debug output per feature with individual flags (`DEBUG_KILL`, `DEBUG_PUBLISH`, etc.).
 <br><br>
 - ⚙️ **Custom Runtime Overrides**  
-  Use an optional `override.ini` to tweak behavior without modifying the original code — great for testing compiled `.exe` versions.
+  - Use an optional `override.ini` to tweak behavior without modifying the original code — great for testing compiled `.exe` versions.
 
 
 ---
@@ -89,4 +89,4 @@ PUBLISH_TIMEOUT=2
 DEFAULT_SHUTDOWN_TIMEOUT=15
 SHOW_WS_URL_PORT_STARTUP=true
 ```
-It is basically the same format config.py, but useful once the exe is compiled 
+It is basically the same format config.py, but useful once the exe is compiled
