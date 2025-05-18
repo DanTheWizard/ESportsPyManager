@@ -1,9 +1,16 @@
 import subprocess
-from win11toast import toast
-from config import MACHINE_ID, GoodIconPath
 import tkinter as tk
+from win11toast import toast
+from ws_connect import client
 from tkinter import messagebox
-# Maybe Not Yet, might be a future Idea if I can figure out how to pass some stuff from main app.py (maybe a .env file)
+from config import MACHINE_ID, GoodIconPath
+
+
+def clean_action():
+    """
+    Sets the action to none after executing an action (to keep it clean)
+    """
+    client.publish(f"PC/{MACHINE_ID}/action", "none")
 
 
 def shutdown_pc(timeout):
@@ -15,6 +22,7 @@ def shutdown_pc(timeout):
         ["shutdown", "/s", "/t", str(timeout), "/c", f"I'm tired, shutting down in {timeout} seconds"],
         shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT
     )
+    clean_action()
 
 
 def show_test_notification():
@@ -28,6 +36,7 @@ def show_test_notification():
         audio='ms-winsoundevent:Notification.SMS',
         button='Nice :)'
     )
+    clean_action()
 
 def say(words):
     """
@@ -39,6 +48,7 @@ def say(words):
         audio='ms-winsoundevent:Notification.SMS',
         dialogue=f'{words}',
     )
+    clean_action()
 
 
 def messageboxMachineID():
@@ -48,6 +58,7 @@ def messageboxMachineID():
     root = tk.Tk()
     root.withdraw()  # Hide the main window
     messagebox.showinfo("Machine Identity", f"  This is this computers identifier: \n  {MACHINE_ID}")
+    clean_action()
 
 # Was manually requested
 def run_MCEdu():
@@ -60,3 +71,4 @@ def run_MCEdu():
         ["start", "minecraftedu://"],
         shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT
     )
+    clean_action()

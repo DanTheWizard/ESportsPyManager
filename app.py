@@ -1,4 +1,3 @@
-import paho.mqtt.client as mqtt                                                               # The WebSocket (and MQTT) library for connecting to a WS server
 import threading                                                                              # Used to run multiple functions at once
 import psutil                                                                                 # Used to kill processes (using subprocess taskkill led to antivirus triggers)
 import json                                                                                   # For JSON data parsing
@@ -14,6 +13,7 @@ from pyautogui import getActiveWindowTitle                                      
 from win11toast import toast                                                                  # Windows 11 Toast Notifications
 from sys import exit                                                                          # Exit the script
 from config import *                                                                          # Import all variables and imports from config (cleaner structure)
+from ws_connect import client, wsConnect
 
 ########################################################################################################
 
@@ -194,7 +194,7 @@ def publish_loop():
         client.publish(f"PC/{MACHINE_ID}/hostname", HOSTNAME)
 
         # Current Time (for detection of "Last Online @")
-        client.publish(f"PC/{MACHINE_ID}/time", str(datetime.now()), 0, True)
+        client.publish(f"LastActive/{MACHINE_ID}/time", str(datetime.now()), 0, True)
 
         # Print the data if debugging
         if DEBUG_PUBLISH: print(f"\n----------------------\nData Sent: \n  CPU: {cpu_percent}% \n  Ram: {ram_percent}%\n  App: {window_title}\n  User: {USERNAME}\n  Time: {datetime.now()}\n----------------------\n")
@@ -318,33 +318,15 @@ def handle_status_update(payload: str):
 # Initialize the AppBlocker
 app_blocker = AppBlocker()
 
-# Connect to the MQTT WebSockets broker
-client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, transport="websockets")
-client.username_pw_set(username=WS_USERNAME, password=WS_PASSWORD)
-if WS_USE_TLS: client.tls_set(ca_certs=None, certfile=None, keyfile=None) # Use system CA certificates (no ca_certs needed) based on config
+wsConnect()
 client.on_message = on_message
 client.on_connect = on_connect
-
-try:
-    client.connect(WS_SERVER, WS_PORT)
-except Exception as e:
-    print("ERROR: Unable to connect to WebSocket Server".center(CENTER_TEXT_WIDTH))
-    print(f"Because: {e}".center(CENTER_TEXT_WIDTH))
-    toast(
-        "Uh Oh",
-        f"Unable to connect to the Server for Data\nError: {e}",
-        icon=ErrorIconPath,
-        audio='ms-winsoundevent:Notification.Reminder',
-        duration='short'
-    )
-    exit()
-
 # Start the MQTT client loop in a separate thread
 client.loop_start()
 
 # Set the current action to none
 # client.publish(f"PC/{MACHINE_ID}/action", "none", 0, True)
-client.publish(f"PC/{MACHINE_ID}/action", "none")
+actions.clean_action()
 
 # Start the publishing loop in another thread
 publish_thread = threading.Thread(target=publish_loop)
