@@ -1,4 +1,4 @@
-app_version = "1.1.3"
+app_version = "1.1.4"
 CENTER_TEXT_WIDTH = 100
 
 def show_logo():

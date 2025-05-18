@@ -1,6 +1,8 @@
 import subprocess
 from win11toast import toast
 from config import MACHINE_ID, GoodIconPath
+import tkinter as tk
+from tkinter import messagebox
 # Maybe Not Yet, might be a future Idea if I can figure out how to pass some stuff from main app.py (maybe a .env file)
 
 
@@ -39,16 +41,13 @@ def say(words):
     )
 
 
-def toastMachineID():
+def messageboxMachineID():
     """
-    Shows a notification with the device's fingerprint
+    Shows a messagebox with the device's fingerprint
     """
-    toast(
-        "Machine Fingerprint:",
-        f"{MACHINE_ID}",
-        audio='ms-winsoundevent:Notification.SMS',
-        button='Ok'
-    )
+    root = tk.Tk()
+    root.withdraw()  # Hide the main window
+    messagebox.showinfo("Machine Identity", f"  This is this computers identifier: \n  {MACHINE_ID}")
 
 # Was manually requested
 def run_MCEdu():

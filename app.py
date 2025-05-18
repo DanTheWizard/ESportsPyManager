@@ -290,7 +290,7 @@ def handle_action(action_str: str):
         "shutdown": lambda arg_timeout: actions.shutdown_pc(arg_timeout or DEFAULT_SHUTDOWN_TIMEOUT),
         "say": lambda arg_words: actions.say(arg_words),
         "MCEdu": lambda _: actions.run_MCEdu(),
-        "ID": lambda _: actions.toastMachineID(),
+        "ID": lambda _: actions.messageboxMachineID(),
         # "lock": lambda _: exec(StreamLock),
         # "unlock": lambda _: exec(StreamUnlock),
     }
