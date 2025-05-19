@@ -6,3 +6,4 @@ python-dotenv
 windows-pathlib
 win11toast
 pyinstaller
+pyttsx3
