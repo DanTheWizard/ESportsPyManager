@@ -4,6 +4,12 @@ from win11toast import toast
 from ws_connect import client
 from tkinter import messagebox
 from config import MACHINE_ID, GoodIconPath
+import pyttsx3
+
+engine = pyttsx3.init()
+engine.setProperty('volume',1.0)          # setting up volume level  between 0 and 1
+voices = engine.getProperty('voices')     # getting details of current voice
+engine.setProperty('voice', voices[0].id) # changing index, changes voices. o for male, 1 for female
 
 
 def clean_action():
@@ -42,12 +48,9 @@ def say(words):
     """
     Shows a simple test notification (useful only to see if the app received WS server command)
     """
-    toast(
-        "Saying",
-        f"{words}",
-        audio='ms-winsoundevent:Notification.SMS',
-        dialogue=f'{words}',
-    )
+    engine.say(f"{words}")
+    engine.runAndWait()
+    engine.stop()
     clean_action()
 
 
