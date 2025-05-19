@@ -24,12 +24,9 @@ def get_system_uuid():
     Stable unless motherboard is changed.
     """
     try:
-        output = subprocess.check_output(['wmic', 'csproduct', 'get', 'UUID'], text=True)
-        lines = [line.strip() for line in output.strip().splitlines() if line.strip()]
-        if len(lines) == 2:
-            return lines[1]  # index 1 after header
-        if len(lines) > 2:
-            return lines[2]  # index 2 after header
+        # output = subprocess.check_output(['wmic', 'csproduct', 'get', 'UUID'], text=True)
+        output = subprocess.check_output(["powershell", "-Command", "Get-CimInstance -Class Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID"], text=True)
+        return output
     except subprocess.CalledProcessError:
         pass
     return "Unknown_UUID"
