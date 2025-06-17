@@ -188,7 +188,7 @@ def publish_loop():
         client.publish(f"PC/{MACHINE_ID}/app", window_title)
 
         # Current User
-        client.publish(f"PC/{MACHINE_ID}/user", USERNAME)
+        client.publish(f"PC/{MACHINE_ID}/user", get_logged_in_username())
 
         # Current Hostname
         client.publish(f"PC/{MACHINE_ID}/hostname", HOSTNAME)

@@ -29,7 +29,6 @@ self_exe                  = os.path.basename(sys.executable)    ;"Grab the curre
 # Machine Information
 HOSTNAME                  = socket.gethostname()                ;"PC hostname"
 MACHINE_ID                = get_short_fingerprint()             ;"PC 10 digit unique hash"
-USERNAME                  = get_logged_in_username()            ;"Current windows logged-in user"
 
 
 # Timeout settings
