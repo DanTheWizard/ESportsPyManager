@@ -10,6 +10,7 @@ from datetime import datetime                                                   
 from process_num import get_process_count                                                     # Process Checker
 from icon_data import GOOD_ICON_BASE64, WARN_ICON_BASE64, ERROR_ICON_BASE64, create_icon      # Icons as Base64 Data
 from pyautogui import getActiveWindowTitle                                                    # Get the current focused app name
+from user import get_logged_in_username                                                       # Gets the username of the currently logged-in user despite whether the script is run with elevated privileges.
 from win11toast import toast                                                                  # Windows 11 Toast Notifications
 from sys import exit                                                                          # Exit the script
 from config import *                                                                          # Import all variables and imports from config (cleaner structure)
@@ -42,8 +43,8 @@ create_icon(ErrorIconPath, ERROR_ICON_BASE64)
 if get_process_count(self_exe) > 2 and self_exe != "python.exe": # When compiled as an exe with PyInstaller, there are 2 instances of it https://stackoverflow.com/a/34197172
     # print(get_process_count(self_exe))
     print("")
-    print(f"ERROR: {self_exe} is already running".center(CENTER_TEXT_WIDTH))
-    print("This new instance will exit".center(CENTER_TEXT_WIDTH))
+    printc(f"ERROR: {self_exe} is already running")
+    printc("This new instance will exit")
     print("")
     toast(
         f"{self_exe} is already running", 
@@ -188,7 +189,8 @@ def publish_loop():
         client.publish(f"PC/{MACHINE_ID}/app", window_title)
 
         # Current User
-        client.publish(f"PC/{MACHINE_ID}/user", get_logged_in_username())
+        username = get_logged_in_username()
+        client.publish(f"PC/{MACHINE_ID}/user", username)
 
         # Current Hostname
         client.publish(f"PC/{MACHINE_ID}/hostname", HOSTNAME)
@@ -197,7 +199,7 @@ def publish_loop():
         client.publish(f"LastActive/{MACHINE_ID}/time", str(datetime.now()), 0, True)
 
         # Print the data if debugging
-        if DEBUG_PUBLISH: print(f"\n----------------------\nData Sent: \n  CPU: {cpu_percent}% \n  Ram: {ram_percent}%\n  App: {window_title}\n  User: {USERNAME}\n  Time: {datetime.now()}\n----------------------\n")
+        if DEBUG_PUBLISH: print(f"\n----------------------\nData Sent: \n  CPU: {cpu_percent}% \n  Ram: {ram_percent}%\n  App: {window_title}\n  User: {username}\n  Time: {datetime.now()}\n----------------------\n")
 
         time.sleep(PUBLISH_TIMEOUT)
 
@@ -224,8 +226,8 @@ def on_connect(wsclient, userdata, flags, reason_code, properties):
                 )
             threading.Thread(target=show_success_con_toast).start()
             # Threads automatically exit once the function is done
-        print("Connected to WebSocket Server".center(CENTER_TEXT_WIDTH))
-        if SHOW_WS_URL_PORT_STARTUP: print(f"{WS_SERVER}:{WS_PORT}".center(CENTER_TEXT_WIDTH))
+        printc("Connected to WebSocket Server")
+        if SHOW_WS_URL_PORT_STARTUP: printc(f"{WS_SERVER}:{WS_PORT}")
         print(f"\n\n")
     else:
         toast(
@@ -235,8 +237,8 @@ def on_connect(wsclient, userdata, flags, reason_code, properties):
             audio='ms-winsoundevent:Notification.Reminder',
             duration='short'
         )
-        print("ERROR: Unable to connect to WebSocket Server".center(CENTER_TEXT_WIDTH))
-        if SHOW_WS_URL_PORT_STARTUP: print(f"{WS_SERVER}:{WS_PORT}".center(CENTER_TEXT_WIDTH))
+        printc("ERROR: Unable to connect to WebSocket Server")
+        if SHOW_WS_URL_PORT_STARTUP: printc(f"{WS_SERVER}:{WS_PORT}")
         print(f"\n\n")
         exit()
 

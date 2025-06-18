@@ -1,4 +1,3 @@
-from user import get_logged_in_username                 # Gets the username of the currently logged-in user despite whether the script is run with elevated privileges.
 from winFingerprint import get_short_fingerprint        # Gets the last 10 digits of the Unique SHA-256 Fingerprint for the OS+Hardware
 from dotenv import load_dotenv                          # User .env file to load confidential data without uploading them to GitHub
 from windows_pathlib import WindowsPathlib as WinPath   # Use windows %path% in python
@@ -15,7 +14,7 @@ Most can be overridden with override.ini for debugging
 """
 
 
-load_dotenv(dotenv_path)                                                   # Load the variables from the .env file
+load_dotenv(dotenv_path)                                 # Load the variables from the .env file
 
 
 IconPath                  = WinPath(r"%public%\\Icons\\")       ;"Root Dir location for storing Icons"
@@ -85,7 +84,6 @@ if __name__ == "__main__":
     print("----------------------------------------------------------")
     print("HOSTNAME:  ", HOSTNAME)
     print("MACHINE_ID:", MACHINE_ID)
-    print("USERNAME:  ", USERNAME)
     print("----------------------------------------------------------")
     print("WS_SERVER:  ", WS_SERVER)
     print("WS_PORT:    ", WS_PORT)
