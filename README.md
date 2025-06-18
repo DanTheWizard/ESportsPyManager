@@ -3,7 +3,7 @@
 A Python-based client script that connects to a WebSocket server to send system telemetry and receive remote commands, specifically aimed at managing student activity on school machines. This project was designed with **educational institutions and ESports labs** in mind (which is where I am deploying this) — helping enforce focus by remotely disabling access to gaming applications during school hours.
 
 > [!Warning]
-> This is still in active development, and is made to work on some of my managed devices
+> 🛠️ This is still in active development, and is made to work on some of my managed devices
 
 > ⚙️ This project was made for fun, testing, deploying on custom-built computers, and practical experimentation.
 > 
@@ -36,6 +36,11 @@ A Python-based client script that connects to a WebSocket server to send system 
 
 ---
 
+## 🧮 Admin Panel
+You can find the admin panel to this tool [here](https://github.com/DanTheWizard/ESportsPyManager-AdminPanel)
+> https://github.com/DanTheWizard/ESportsPyManager-AdminPanel
+
+---
 
 ## 📦 Requirements
 
