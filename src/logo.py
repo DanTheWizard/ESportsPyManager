@@ -1,4 +1,4 @@
-app_version = "1.1.11b"
+app_version = "1.1.12"
 CENTER_TEXT_WIDTH = 100
 
 def printc(text: str = ""):
@@ -33,7 +33,8 @@ def show_logo():
         "Developed by: DanTheWizard",
         "",
         "This app is made to prevent some apps from being launched during school hours",
-        "based on the current config that is stored on a server"
+        "based on the current config that is stored on a server",
+        ""
     ]
 
     for line in logo_lines:
