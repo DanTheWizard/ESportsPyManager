@@ -16,6 +16,15 @@ Most can be overridden with override.ini for debugging
 
 load_dotenv(dotenv_path)                                 # Load the variables from the .env file
 
+APP_MAP = {
+    "Epic":   ["EpicGamesLauncher.exe", "EpicWebHelper.exe"],
+    "Steam":  ["steam.exe"],
+    "Battle": ["battle.net.exe"],
+    "Riot":   ["RiotClientUx.exe", "RiotClientServices.exe"],
+    "MCJava": ["javaw.exe", "MinecraftLauncher.exe"],
+    "MCEdu":  ["Minecraft.Windows.exe"]
+}
+
 
 IconPath                  = WinPath(r"%public%\\Icons\\")       ;"Root Dir location for storing Icons"
 WarnIconPath              = f"{IconPath}warn.png"               ;"Warning/Exclamation icon path"

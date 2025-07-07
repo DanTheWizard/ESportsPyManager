@@ -116,3 +116,21 @@ def run_MCEdu():
         finally:
             clean_action()
     threading.Thread(target=run).start()
+
+
+def run_MCJava():
+    """
+    Runs Minecraft Java Edition Shortcut
+    """
+    def run():
+        try:
+            print("\nLaunching MCJava\n")
+            subprocess.run(
+                [r"C:\Users\Public\RunMCJava.cmd"],
+                shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT
+            )
+        except Exception as e:
+            print(f"Error in run_MCJava(): {e}")
+        finally:
+            clean_action()
+    threading.Thread(target=run).start()

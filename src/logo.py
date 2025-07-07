@@ -1,4 +1,4 @@
-app_version = "1.1.12"
+app_version = "1.1.13"
 CENTER_TEXT_WIDTH = 100
 
 def printc(text: str = ""):

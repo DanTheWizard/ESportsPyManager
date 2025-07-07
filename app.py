@@ -65,12 +65,6 @@ def kill_app(app_name):
     """
     Finds and kills a given application and its child processes based on predefined executable names.
     """
-    app_map = {
-        "Epic": ["EpicGamesLauncher.exe", "EpicWebHelper.exe"],
-        "Steam": ["steam.exe"],
-        "Battle": ["battle.net.exe"],
-        "Riot": ["RiotClientUx.exe", "RiotClientServices.exe"]
-    }
 
     def kill_process_and_children(process):
         """
@@ -92,7 +86,7 @@ def kill_app(app_name):
             debug_kill_adv_print(f"Error accessing/killing process tree: {e}")
 
     # Search all running processes and compare their names
-    for process_name in app_map.get(app_name, []):
+    for process_name in APP_MAP.get(app_name, []):
         for proc in psutil.process_iter(attrs=['pid', 'name']):
             try:
                 if proc.info['name'].lower() == process_name.lower():
@@ -197,6 +191,8 @@ def publish_loop():
 
         # Current Time (for detection of "Last Online @")
         client.publish(f"LastActive/{MACHINE_ID}/time", str(datetime.now()), 0, True)
+
+        # TODO: Add App/Script Version to publish
 
         # Print the data if debugging
         if DEBUG_PUBLISH: print(f"\n----------------------\nData Sent: \n  CPU: {cpu_percent}% \n  Ram: {ram_percent}%\n  App: {window_title}\n  User: {username}\n  Time: {datetime.now()}\n----------------------\n")
