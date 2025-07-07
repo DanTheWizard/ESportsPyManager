@@ -4,11 +4,16 @@ import tkinter as tk
 from win11toast import toast
 from ws_connect import client
 from tkinter import messagebox
-from config import MACHINE_ID, GoodIconPath
+from config import MACHINE_ID, GoodIconPath, DEBUG
 import pyttsx3
 
 
 # Every action must be created in a separate thread as it will freeze the publishing
+
+def none_action():
+    if DEBUG:
+        print("\nNo Action to Do\n")
+    clean_action()
 
 
 def clean_action():

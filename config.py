@@ -3,6 +3,7 @@ from dotenv import load_dotenv                          # User .env file to load
 from windows_pathlib import WindowsPathlib as WinPath   # Use windows %path% in python
 from override import get_override                       # Use variables in override.ini over the default (Useful for debugging)
 from envpath import dotenv_path                         # Dynamic exe .env path location (I need to find a better way to secure this to prevent values from .env to be easily readable)
+import actions                                          # Set of actions to do based on received WebSocket action string
 import socket
 import sys
 import os
@@ -36,6 +37,18 @@ APP_MAP = {
     "MCJava": ["javaw.exe", "MinecraftLauncher.exe"],
     "MCEdu":  ["Minecraft.Windows.exe"]
 } ; "Map of all the apps to kill, with the first item being the main app from APP_LIST and the rest being the exe names"
+
+ACTION_MAP = {
+    "none":     lambda _: actions.none_action(),
+    "test":     lambda _: actions.show_test_notification(),
+    "MCEdu":    lambda _: actions.run_MCEdu(),
+    "MCJava":   lambda _: actions.run_MCJava(),
+    "ID":       lambda _: actions.messageboxMachineID(),
+    "shutdown": lambda arg_timeout: actions.shutdown_pc(arg_timeout or DEFAULT_SHUTDOWN_TIMEOUT),
+    "say":      lambda arg_words:   actions.say(arg_words),
+    # "lock": lambda _: exec(StreamLock),
+    # "unlock": lambda _: exec(StreamUnlock),
+}
 
 
 IconPath                  = WinPath(r"%public%\\Icons\\")       ;"Root Dir location for storing Icons"

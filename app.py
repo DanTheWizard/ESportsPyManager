@@ -278,18 +278,7 @@ def handle_action(action_str: str):
 
     debug_print(f"\n----------\nFull Action: {action_str}\nAction: {action}\nArg: {arg}\n----------\n")
 
-    actions_map = {
-        "none": lambda _: debug_print("\nNo Action to Do\n"),
-        "test": lambda _: actions.show_test_notification(),
-        "shutdown": lambda arg_timeout: actions.shutdown_pc(arg_timeout or DEFAULT_SHUTDOWN_TIMEOUT),
-        "say": lambda arg_words: actions.say(arg_words),
-        "MCEdu": lambda _: actions.run_MCEdu(),
-        "ID": lambda _: actions.messageboxMachineID(),
-        # "lock": lambda _: exec(StreamLock),
-        # "unlock": lambda _: exec(StreamUnlock),
-    }
-
-    action_func = actions_map.get(action)
+    action_func = ACTION_MAP.get(action)
     if action_func:
         action_func(arg)
     else:
