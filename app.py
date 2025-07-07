@@ -189,10 +189,11 @@ def publish_loop():
         # Current Hostname
         client.publish(f"PC/{MACHINE_ID}/hostname", HOSTNAME)
 
+        # Current PyAppManager Version
+        client.publish(f"PC/{MACHINE_ID}/version", app_version)
+
         # Current Time (for detection of "Last Online @")
         client.publish(f"LastActive/{MACHINE_ID}/time", str(datetime.now()), 0, True)
-
-        # TODO: Add App/Script Version to publish
 
         # Print the data if debugging
         if DEBUG_PUBLISH: print(f"\n----------------------\nData Sent: \n  CPU: {cpu_percent}% \n  Ram: {ram_percent}%\n  App: {window_title}\n  User: {username}\n  Time: {datetime.now()}\n----------------------\n")
