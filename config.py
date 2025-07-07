@@ -16,6 +16,18 @@ Most can be overridden with override.ini for debugging
 
 load_dotenv(dotenv_path)                                 # Load the variables from the .env file
 
+
+
+APPS_LIST = {
+    "Epic":   False,
+    "Steam":  False,
+    "Battle": False,
+    "Riot":   False,
+    "MCJava": False,
+    "MCEdu":  False
+} ; "List of all the apps to kill, with a default value of whether to kill or not (False = do not kill, True = kill)"
+
+
 APP_MAP = {
     "Epic":   ["EpicGamesLauncher.exe", "EpicWebHelper.exe"],
     "Steam":  ["steam.exe"],
@@ -23,7 +35,7 @@ APP_MAP = {
     "Riot":   ["RiotClientUx.exe", "RiotClientServices.exe"],
     "MCJava": ["javaw.exe", "MinecraftLauncher.exe"],
     "MCEdu":  ["Minecraft.Windows.exe"]
-}
+} ; "Map of all the apps to kill, with the first item being the main app from APP_LIST and the rest being the exe names"
 
 
 IconPath                  = WinPath(r"%public%\\Icons\\")       ;"Root Dir location for storing Icons"

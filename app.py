@@ -114,12 +114,7 @@ class AppBlocker:
         """
         Initializes internal flags, default status values, and starts the background killing thread.
         """
-        self.app_status = {
-            "Epic": False,
-            "Steam": False,
-            "Battle": False,
-            "Riot": False
-        }
+        self.app_status = APPS_LIST
 
         self.main_script_enabled = False            # By default, the kill loop is not run
         self.running = True                         # Allows for future graceful shutdown of the loop
