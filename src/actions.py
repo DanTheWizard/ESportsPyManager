@@ -41,6 +41,24 @@ def shutdown_pc(timeout):
     threading.Thread(target=run).start()
 
 
+def reboot_pc():
+    """
+    Instantly reboots the PC
+    """
+    def run():
+        try:
+            #shutdown /s /t 60 /c "I'm tired, shutting down in 10 seconds"
+            subprocess.run(
+                ["shutdown", "/r", "/t","0"],
+                shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT
+            )
+        except Exception as e:
+            print(f"Error in reboot_pc(): {e}")
+        finally:
+            clean_action()
+    threading.Thread(target=run).start()
+
+
 def show_test_notification():
     """
     Shows a simple test notification (useful only to see if the app received WS server command)

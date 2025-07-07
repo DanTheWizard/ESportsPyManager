@@ -44,6 +44,7 @@ ACTION_MAP = {
     "MCEdu":    lambda _: actions.run_MCEdu(),
     "MCJava":   lambda _: actions.run_MCJava(),
     "ID":       lambda _: actions.messageboxMachineID(),
+    "reboot":   lambda _: actions.reboot_pc(),
     "shutdown": lambda arg_timeout: actions.shutdown_pc(arg_timeout or DEFAULT_SHUTDOWN_TIMEOUT),
     "say":      lambda arg_words:   actions.say(arg_words),
     # "lock": lambda _: exec(StreamLock),
