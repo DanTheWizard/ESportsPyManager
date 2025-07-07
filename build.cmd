@@ -23,10 +23,10 @@ REM -s version for a shown window, -h version for hidden window (no output conso
 if %hidden%==0 (
      %python% %pre_args% --name app-s.exe %post_args%
 ) else if %hidden%==1 (
-    %python% %pre_args% --name app-h.exe %post_args% --noconsole --hide-console
+    %python% %pre_args% --name app-h.exe %post_args% --noconsole --hide-console=hide-early
 ) else if %hidden%==2 (
     %python% %pre_args% --name app-s.exe %post_args%
-    %python% %pre_args% --name app-h.exe %post_args% --noconsole --hide-console
+    %python% %pre_args% --name app-h.exe %post_args% --noconsole --hide-console=hide-early
 ) else (
     echo %python% %pre_args% --name app-s.exe %post_args%
 )
