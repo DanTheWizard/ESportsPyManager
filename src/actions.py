@@ -47,9 +47,8 @@ def reboot_pc():
     """
     def run():
         try:
-            #shutdown /s /t 60 /c "I'm tired, shutting down in 10 seconds"
             subprocess.run(
-                ["shutdown", "/r", "/t","0"],
+                ["shutdown", "/r", "/t", "0"],
                 shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT
             )
         except Exception as e:

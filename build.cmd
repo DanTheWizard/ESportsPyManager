@@ -4,7 +4,7 @@ REM 0 - Build only the -s version
 REM 1 - Build only the -h version
 REM 2 - Build both -s and -h version
 REM | - Show what command would run
-set hidden=0
+set hidden=2
 
 REM python script to build
 set file="%~dp0\app.py"
@@ -23,10 +23,10 @@ REM -s version for a shown window, -h version for hidden window (no output conso
 if %hidden%==0 (
      %python% %pre_args% --name app-s.exe %post_args%
 ) else if %hidden%==1 (
-    %python% %pre_args% --name app-h.exe %post_args% --noconsole
+    %python% %pre_args% --name app-h.exe %post_args% --noconsole --hide-console
 ) else if %hidden%==2 (
     %python% %pre_args% --name app-s.exe %post_args%
-    %python% %pre_args% --name app-h.exe %post_args% --noconsole
+    %python% %pre_args% --name app-h.exe %post_args% --noconsole --hide-console
 ) else (
     echo %python% %pre_args% --name app-s.exe %post_args%
 )
