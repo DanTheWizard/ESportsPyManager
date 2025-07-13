@@ -1,7 +1,7 @@
 import paho.mqtt.client as mqtt                                                               # The WebSocket (and MQTT) library for connecting to a WS server
 from config import *                                                                          # Import all variables and imports from config (cleaner structure)
 from win11toast import toast                                                                  # Windows 11 Toast Notifications
-from logo import CENTER_TEXT_WIDTH                                                            # Main width for text if to be centered
+from src.logo import CENTER_TEXT_WIDTH                                                            # Main width for text if to be centered
 
 
 

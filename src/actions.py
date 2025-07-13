@@ -2,7 +2,7 @@ import subprocess
 import threading                               # Used to run multiple functions at once
 import tkinter as tk
 from win11toast import toast
-from ws_connect import client
+from src.ws_connect import client
 from tkinter import messagebox
 from config import MACHINE_ID, GoodIconPath, DEBUG
 import pyttsx3

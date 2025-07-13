@@ -2,18 +2,20 @@ import threading                                                                
 import psutil                                                                                 # Used to kill processes (using subprocess taskkill led to antivirus triggers)
 import json                                                                                   # For JSON data parsing
 import time                                                                                   # Well... to set timeouts
-import streamTool                                                                             # Check if Environmental Variable exists
-from logo import *                                                                            # Show custom logo and Main width for text if to be centered
-from debugPrint import *                                                                      # Import the Debug Print Functions
-from datetime import datetime                                                                 # Used to get current time for server detection when a device was last online
-from process_num import get_process_count                                                     # Process Checker
-from icon_data import GOOD_ICON_BASE64, WARN_ICON_BASE64, ERROR_ICON_BASE64, create_icon      # Icons as Base64 Data
+import src.actions as actions                                         # Set of actions to do based on received WebSocket action string
+import src.streamTool as streamTool                                                           # Check if Environmental Variable exists
+from src.logo import *                                                                            # Show custom logo and Main width for text if to be centered
+from src.debugPrint import *                                                                      # Import the Debug Print Functions
+from src.process_num import get_process_count                                                     # Process Checker
+from src.icon_data import GOOD_ICON_BASE64, WARN_ICON_BASE64, ERROR_ICON_BASE64, create_icon      # Icons as Base64 Data
+from src.user import get_logged_in_username                                                       # Gets the username of the currently logged-in user despite whether the script is run with elevated privileges.
+from src.ws_connect import client, wsConnect
 from pyautogui import getActiveWindowTitle                                                    # Get the current focused app name
-from user import get_logged_in_username                                                       # Gets the username of the currently logged-in user despite whether the script is run with elevated privileges.
 from win11toast import toast                                                                  # Windows 11 Toast Notifications
 from sys import exit                                                                          # Exit the script
 from config import *                                                                          # Import all variables and imports from config (cleaner structure)
-from ws_connect import client, wsConnect
+from map import APP_MAP, ACTION_MAP, APPS_LIST                                                # Import the App Map and Action Map
+from datetime import datetime                                                                 # Used to get current time for server detection when a device was last online
 
 ########################################################################################################
 
@@ -175,9 +177,6 @@ def publish_loop():
 
         client.publish(f"PC/{MACHINE_ID}/data", json.dumps(data_payload))
         if DEBUG_PUBLISH: print(f"\n----------------------\nData Sent: \n  {data_payload} \n----------------------\n")
-
-        # Current Time (for detection of "Last Online @")
-        client.publish(f"LastActive/{MACHINE_ID}/time", str(datetime.now()), 0, True)
 
         time.sleep(PUBLISH_TIMEOUT)
 

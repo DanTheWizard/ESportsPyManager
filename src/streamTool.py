@@ -1,7 +1,7 @@
-from icon_data import WARN_ICON_BASE64, create_icon     # Icons as Base64 Data
+from src.icon_data import WARN_ICON_BASE64, create_icon     # Icons as Base64 Data
 from windows_pathlib import WindowsPathlib as WinPath   # Use windows %path% in python
 from win11toast import toast                            # Windows 11 Toast Notifications
-from logo import CENTER_TEXT_WIDTH                      # Get the console width to center text varaible
+from src.logo import CENTER_TEXT_WIDTH                      # Get the console width to center text varaible
 import os
 
 def bypass():
