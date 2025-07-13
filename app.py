@@ -15,6 +15,7 @@ from win11toast import toast                                                    
 from sys import exit                                                                          # Exit the script
 from config import *                                                                          # Import all variables and imports from config (cleaner structure)
 from ws_connect import client, wsConnect
+import json
 
 ########################################################################################################
 
@@ -165,33 +166,17 @@ class AppBlocker:
 # Function to publish messages in a loop
 def publish_loop():
     while True:
-        # CPU Usage Percentage
-        cpu_percent = psutil.cpu_percent()
-        client.publish(f"PC/{MACHINE_ID}/cpu", cpu_percent)
+        data_payload = {
+            "cpu":      psutil.cpu_percent(),                 # CPU Usage Percentage
+            "ram":      str(psutil.virtual_memory().percent), # Ram Percentage
+            "app":      getActiveWindowTitle(),               # Current Focused App
+            "user":     get_logged_in_username(),             # Current User
+            "hostname": HOSTNAME,                             # Current Hostname
+            "version":  app_version                           # Current PyAppManager Version
+        }
 
-        # Ram Percentage
-        ram_percent = str(psutil.virtual_memory().percent)
-        client.publish(f"PC/{MACHINE_ID}/ram", ram_percent)
-
-        # Current Focused App
-        window_title = getActiveWindowTitle()
-        client.publish(f"PC/{MACHINE_ID}/app", window_title)
-
-        # Current User
-        username = get_logged_in_username()
-        client.publish(f"PC/{MACHINE_ID}/user", username)
-
-        # Current Hostname
-        client.publish(f"PC/{MACHINE_ID}/hostname", HOSTNAME)
-
-        # Current PyAppManager Version
-        client.publish(f"PC/{MACHINE_ID}/version", app_version)
-
-        # Current Time (for detection of "Last Online @")
-        client.publish(f"LastActive/{MACHINE_ID}/time", str(datetime.now()), 0, True)
-
-        # Print the data if debugging
-        if DEBUG_PUBLISH: print(f"\n----------------------\nData Sent: \n  CPU: {cpu_percent}% \n  Ram: {ram_percent}%\n  App: {window_title}\n  User: {username}\n  Time: {datetime.now()}\n----------------------\n")
+        client.publish(f"PC/{MACHINE_ID}/data", json.dumps(data_payload))
+        if DEBUG_PUBLISH: print(f"\n----------------------\nData Sent: \n  {data_payload} \n----------------------\n")
 
         time.sleep(PUBLISH_TIMEOUT)
 
