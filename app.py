@@ -2,7 +2,6 @@ import threading                                                                
 import psutil                                                                                 # Used to kill processes (using subprocess taskkill led to antivirus triggers)
 import json                                                                                   # For JSON data parsing
 import time                                                                                   # Well... to set timeouts
-import actions                                                                                # Set of actions to do based on received WebSocket action string
 import streamTool                                                                             # Check if Environmental Variable exists
 from logo import *                                                                            # Show custom logo and Main width for text if to be centered
 from debugPrint import *                                                                      # Import the Debug Print Functions
@@ -15,7 +14,6 @@ from win11toast import toast                                                    
 from sys import exit                                                                          # Exit the script
 from config import *                                                                          # Import all variables and imports from config (cleaner structure)
 from ws_connect import client, wsConnect
-import json
 
 ########################################################################################################
 
@@ -177,6 +175,9 @@ def publish_loop():
 
         client.publish(f"PC/{MACHINE_ID}/data", json.dumps(data_payload))
         if DEBUG_PUBLISH: print(f"\n----------------------\nData Sent: \n  {data_payload} \n----------------------\n")
+
+        # Current Time (for detection of "Last Online @")
+        client.publish(f"LastActive/{MACHINE_ID}/time", str(datetime.now()), 0, True)
 
         time.sleep(PUBLISH_TIMEOUT)
 
