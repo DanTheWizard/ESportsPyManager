@@ -8,7 +8,8 @@ A Python-based client script that connects to a WebSocket server to send system 
 > If you want to use it, **you will have to** modify some parts of it
 
 > [!NOTE]  
-> ⚙️ This project was made for fun, testing, deploying on my managed computers, and practical experimentation. <br>
+> ⚙️ This project was made for fun, testing, deploying on my managed computers, and practical experimentation.
+> 
 > I am sharing the code to help others learn and adapt it for their own use cases 🙂
 
 
