@@ -24,7 +24,9 @@ show_logo()
 ########################################################################################################
 
 # Check if STREAMOS tool is installed by checking its path
-streamTool.check()
+#streamTool.check()
+# Skipping this for now, as it is not needed for the current version of the app
+# Maybe in the future, but I'll leave it in for now
 
 ########################################################################################################
 
