@@ -5,9 +5,12 @@ A Python-based client script that connects to a WebSocket server to send system 
 > [!Warning]
 > 🛠️ This is still in active development, and is made to work on my managed devices
 >
-> If you want to use it, **you will have to** modify some parts of it for your own use
+> If you want to use it, **you will have to** modify some parts of it
 
 > ⚙️ This project was made for fun, testing, deploying on custom-built computers, and practical experimentation.
+
+> [!NOTE]  
+> I am sharing the code to help others learn and adapt it for their own use cases 🙂
 
 ---
 
@@ -17,8 +20,8 @@ A Python-based client script that connects to a WebSocket server to send system 
     - Sends real-time data such as CPU usage, memory, focused window, and logged-in user.
 <br><br>
 - 🚫 **Remote Game Blocking**  
-  - Receives `status` and `action` commands over MQTT to:
-  - Kill pre-configured game launchers (Steam, Epic, Riot, Battle.net)
+  - Receives `status` and `action` commands over WebSocket to block or unblock specific games.
+  - Kill configured game launchers (Steam, Epic, Riot, Battle.net) based on a map in `map.py`
 <br><br>
 - 🖥️ Run remote custom actions like:
   - Shutdown (with an arg of a timer)
@@ -44,15 +47,17 @@ You can find the admin panel to this tool [here](https://github.com/DanTheWizard
 
 ## 📦 Requirements
 
-- Python 3.9 or higher
-- Windows 10/11 (recommended for `win11toast`)
-- Dependencies:
-  - `paho-mqtt`
+- Python 3.9 or higher _(Made with 3.13)_
+- Windows 11 (recommended for `win11toast`)
+- Dependencies (see `requirements.txt`):
+  - `paho-mqtt` (for WebSocket communication)
   - `psutil`
   - `pyautogui`
-  - `python-dotenv`
-  - `win11toast` (custom fork for Windows 11 native notifications)
-  - Mark the `src` folder as a source root folder 
+  - `python-dotenv` (loading .env data)
+  - `pyttsx3` (Text to Speech as one of the actions)
+  - `win11toast` (custom fork for Windows 11 native notifications) 
+  - `pyinstaller` (for compiling to .exe)
+  - `pyinstaller_versionfile` (for version file generation for `pyinstaller`)
 
 
 ---
