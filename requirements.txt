@@ -7,3 +7,4 @@ windows-pathlib
 win11toast
 pyinstaller
 pyttsx3
+pyinstaller_versionfile
