@@ -35,6 +35,7 @@ MACHINE_ID                = get_short_fingerprint()             ;"PC 10 digit un
 PUBLISH_TIMEOUT           = get_override("PUBLISH_TIMEOUT",          4,  int)        ;"Timout in seconds before publishing PC data | Default: 4"
 KILL_LOOP_TIMEOUT         = get_override("KILL_LOOP_TIMEOUT",        4,  int)        ;"Timeout in seconds before running the kill loop | Default: 4"
 DEFAULT_SHUTDOWN_TIMEOUT  = get_override("DEFAULT_SHUTDOWN_TIMEOUT", 60, int)        ;"Shutdown Timeout in seconds when receiving the shutdown command | Default: 60"
+RECONNECT_WS_TIMEOUT      = get_override("RECONNECT_WS_TIMEOUT",     10, int)        ;"Timeout in seconds to retry connection to the server if it loses | Default: 10"
 
 
 # Debugging (I do not recommend enabling all of them at once)

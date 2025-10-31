@@ -1,7 +1,8 @@
 import paho.mqtt.client as mqtt                                                               # The WebSocket (and MQTT) library for connecting to a WS server
 from config import *                                                                          # Import all variables and imports from config (cleaner structure)
 from win11toast import toast                                                                  # Windows 11 Toast Notifications
-from src.logo import CENTER_TEXT_WIDTH                                                            # Main width for text if to be centered
+from src.logo import CENTER_TEXT_WIDTH                                                        # Main width for text if to be centered
+import threading
 
 
 
@@ -14,14 +15,20 @@ def wsConnect():
 
     try:
         client.connect(WS_SERVER, WS_PORT)
-    except Exception as e:
+    except Exception as err:
         print("ERROR: Unable to connect to WebSocket Server".center(CENTER_TEXT_WIDTH))
-        print(f"Because: {e}".center(CENTER_TEXT_WIDTH))
-        toast(
-            "Uh Oh",
-            f"Unable to connect to the Server for Data\nError: {e}",
-            icon=ErrorIconPath,
-            audio='ms-winsoundevent:Notification.Reminder',
-            duration='short'
-        )
-        exit()
+        print(f"Because: {err}".center(CENTER_TEXT_WIDTH))
+
+        def run(e):
+            try:
+                toast(
+                    "Uh Oh",
+                    f"Unable to connect to the Server for Data\nError: {e}",
+                    icon=ErrorIconPath,
+                    audio='ms-winsoundevent:Notification.Reminder',
+                    duration='short'
+                )
+            except Exception as e:
+                print(f"Error in show_test_notification(): {e}")
+        threading.Thread(target=run, args=(err,)).start()
+

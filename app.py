@@ -284,6 +284,19 @@ def handle_status_update(payload: str):
 
 ########################################################################################################
 
+def on_disconnect(wsclient, userdata, disconnect_flags, rc, properties):
+    print(f"Disconnected with code {rc}. Attempting to reconnect in {RECONNECT_WS_TIMEOUT}s ...")
+
+    while True:
+        time.sleep(RECONNECT_WS_TIMEOUT)  # Wait before retrying
+        try:
+            wsclient.reconnect()
+            print("Reconnected successfully.")
+            break
+        except Exception as e:
+            print(f"Error during manual reconnect: {e}")
+            print(f"Retrying in {RECONNECT_WS_TIMEOUT}s ...")
+
 
 # Initialize the AppBlocker
 app_blocker = AppBlocker()
@@ -291,6 +304,7 @@ app_blocker = AppBlocker()
 wsConnect()
 client.on_message = on_message
 client.on_connect = on_connect
+client.on_disconnect = on_disconnect
 # Start the MQTT client loop in a separate thread
 client.loop_start()
 
