@@ -13,7 +13,6 @@ import pyttsx3
 def none_action():
     if DEBUG:
         print("\nNo Action to Do\n")
-    clean_action()
 
 
 def clean_action():
